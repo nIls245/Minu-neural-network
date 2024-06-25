@@ -1,0 +1,76 @@
+import idx2numpy
+import numpy as np
+import random
+
+
+def sigmoid(x):
+  return 1.0 / (1.0 + np.exp(-x))
+def dsigmoid(x1):
+  return (np.exp(-x1) / ((1 + np.exp(-x1)) ** 2))
+out1 = [0] * 10
+n = 32
+r = 28
+p = 784
+q = 10
+
+W1 = [[random.uniform(-0.5, 0.5) for _ in range(p)] for _ in range(n)]
+W2 = [[random.uniform(-0.5, 0.5) for _ in range(n)] for _ in range(n)]
+W3 = [[random.uniform(-0.5, 0.5) for _ in range(n)] for _ in range(q)]
+sCost = 0
+arr = idx2numpy.convert_from_file('train-images-idx3-ubyte')
+lbl = idx2numpy.convert_from_file('train-labels-idx1-ubyte')
+
+b1 = [0] * n
+b2 = [0] * n
+b3 = [0] * q
+  
+for s in range(60000):
+
+  a0 =  [arr[s][i][j] / 253 for j in range(r) for i in range(r)]
+
+  a1 = [sigmoid(sum([[x * y for x, y in zip(W1[i], a0)] for i in range(n)][k]) + b1[k]) for k in range(n)]
+  a2 = [sigmoid(sum([[a * b for a, b in zip(W2[c], a1)] for c in range(n)][d]) + b2[d]) for d in range(n)]
+  a3 = [sigmoid(sum([[d * f for d, f in zip(W3[c], a2)] for c in range(q)][d]) + b3[d]) for d in range(q)]
+  
+  out1[lbl[s]] = 1
+  
+  Cost = sum(np.power([v - v2 for v, v2 in zip(a3, out1)], 2))
+  dCost = sum([(v - v2) * 2 for v, v2 in zip(a3, out1)])
+  
+  #print(out1)
+  #print(np.round(a3, 2))
+  
+  z1 = [dsigmoid(sum([[x * y for x, y in zip(W1[i], a0)] for i in range(n)][k]) + b1[k]) for k in range(n)]
+  z2 = [dsigmoid(sum([[a * b for a, b in zip(W2[c], a1)] for c in range(n)][d]) + b2[d]) for d in range(n)]
+  z3 = [dsigmoid(sum([[d * f for d, f in zip(W3[c2], a2)] for c2 in range(q)][c]) + b3[c]) for c in range(q)]
+  
+  dCost1 = [(v - v2) * 2 for v, v2 in zip(a3, out1)]
+  dCost2 = [sum([(z3[i] * dCost1[i]) * W3[i][j]  for i in range(q)])for j in range(n)]
+  dCost3 = [sum([(z2[i] * dCost2[i]) * W2[i][j]  for i in range(n)])for j in range(n)]
+  
+  dW3 = [[z3[j] * a2[i] * dCost1[j] for i in range(n)] for j in range(q)]
+  dW2 = [[z2[j] * a1[i] * dCost2[j] for i in range(n)] for j in range(n)]
+  dW1 = [[z1[j] * a0[i] * dCost3[j] for i in range(p)] for j in range(n)]
+  
+  db3 = [z3[j] * dCost1[j] for j in range(q)]
+  db2 = [z2[j] * dCost2[j] for j in range(n)]
+  db1 = [z1[j] * dCost3[j] for j in range(n)]
+  
+  W1 = [[W1[i][j] - dW1[i][j] for j in range(p)] for i in range(n)]
+  W2 = [[W2[i][j] - dW2[i][j] for j in range(n)] for i in range(n)]
+  W3 = [[W3[i][j] - dW3[i][j] for j in range(n)] for i in range(q)]
+  
+  b1 = [b1[i] - db1[i] for i in range(n)]
+  b2 = [b2[i] - db2[i] for i in range(n)]
+  b3 = [b3[i] - db3[i] for i in range(q)]
+  
+  out1 = [0] * 10
+  
+  #if ((s % 10) == 10):
+
+  print(lbl[s])
+  print(np.argmax(a3))
+  print(a3[np.argmax(a3)])
+   
+print(W3, W2, W1, b3, b2, b1)
+
