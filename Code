@@ -7,6 +7,7 @@ def sigmoid(x):
   return 1.0 / (1.0 + np.exp(-x))
 def dsigmoid(x1):
   return (np.exp(-x1) / ((1 + np.exp(-x1)) ** 2))
+
 out1 = [0] * 10
 n = 32
 r = 28
@@ -36,9 +37,6 @@ for s in range(60000):
   
   Cost = sum(np.power([v - v2 for v, v2 in zip(a3, out1)], 2))
   dCost = sum([(v - v2) * 2 for v, v2 in zip(a3, out1)])
-  
-  #print(out1)
-  #print(np.round(a3, 2))
   
   z1 = [dsigmoid(sum([[x * y for x, y in zip(W1[i], a0)] for i in range(n)][k]) + b1[k]) for k in range(n)]
   z2 = [dsigmoid(sum([[a * b for a, b in zip(W2[c], a1)] for c in range(n)][d]) + b2[d]) for d in range(n)]
@@ -71,6 +69,14 @@ for s in range(60000):
   print(lbl[s])
   print(np.argmax(a3))
   print(a3[np.argmax(a3)])
-   
-print(W3, W2, W1, b3, b2, b1)
+    
+  if s == 50000:
+    s = 0
+  
 
+print(W3)
+print(W2)
+print(W1)
+print(b3)
+print(b2)
+print(b1)
